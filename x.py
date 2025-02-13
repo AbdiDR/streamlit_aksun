@@ -4,6 +4,7 @@ import pickle
 import cv2
 import numpy as np
 from scipy.spatial.distance import cdist
+from PIL import Image
 
 # Path ke model
 BOW_FILE_PICKLE = "model/sift_bow_dictionary.pkl"
@@ -13,6 +14,8 @@ SVM_FILE_PICKLE = "model/sift_svm_with_sift_model_claude_full.pkl"
 # Konfigurasi folder
 UPLOAD_FOLDER = 'static/uploads'
 RESULT_FOLDER = 'static/results'
+
+# Buat folder jika belum ada
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(RESULT_FOLDER, exist_ok=True)
 
@@ -90,32 +93,25 @@ st.set_page_config(
 st.markdown("""
 <style>
     .main {
-        padding: 2rem;
+        padding: 1rem;
     }
     .stApp {
         background-color: #f3f4f6;
     }
-    .upload-container {
-        background-color: white;
-        padding: 1.5rem;
-        border-radius: 0.5rem;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        max-width: 32rem;
-        margin: auto;
-    }
     .prediction-text {
         font-weight: bold;
         text-align: center;
-        margin: 1rem 0;
-        font-size: 1.5rem;
+        margin: 0.5rem 0;
+        font-size: 2 rem;
     }
     .stButton > button {
         width: 100%;
         background-color: #0d6efd;
         color: white;
         font-weight: bold;
-        padding: 0.5rem 1rem;
+        padding: 0.4rem;
         border-radius: 0.375rem;
+        font-size: 0.9rem;
     }
     .stButton > button:hover {
         background-color: #0b5ed7;
@@ -123,28 +119,46 @@ st.markdown("""
     .image-container {
         border: 1px solid #e5e7eb;
         border-radius: 0.375rem;
-        padding: 0.5rem;
-        margin-bottom: 1rem;
+        padding: 0.3rem;
+        margin-bottom: 0.5rem;
         background-color: white;
+        min-height: 150px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
     .upload-text {
         color: #6b7280;
         text-align: center;
-        padding: 2rem;
+        padding: 1rem;
+        font-size: 0.8rem;
     }
     .header-text {
         color: #111827;
         text-align: center;
-        font-size: 1.5rem;
+        font-size: 1.2rem;
         font-weight: bold;
-        margin-bottom: 1rem;
+        margin-bottom: 0.5rem;
     }
     .subheader-text {
         color: #374151;
         text-align: center;
-        font-size: 0.875rem;
+        font-size: 0.8rem;
         font-weight: 600;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.3rem;
+    }
+    div[data-testid="stFileUploadDropzone"] {
+        width: 100%;
+        max-height: 100px;
+    }
+    div.stMarkdown {
+        margin-bottom: 0.3rem;
+    }
+    div[data-testid="stImage"] {
+        margin-bottom: 0.3rem;
+    }
+    div[data-testid="column"] {
+        padding: 0.3rem;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -154,10 +168,8 @@ st.markdown("<h1 class='header-text'>Klasifikasi Aksara Sunda</h1>", unsafe_allo
 
 # Container utama
 with st.container():
-    col1, col2, col3 = st.columns([1,2,1])
+    col1, col2, col3 = st.columns([1,3,1])
     with col2:
-        # st.markdown("<div class='upload-container'>", unsafe_allow_html=True)
-        
         # File uploader
         uploaded_file = st.file_uploader("", type=['jpg'], key="file_uploader")
         
@@ -204,18 +216,16 @@ with st.container():
                         <p>Karakter: {st.session_state.prediction} | Confidence: {st.session_state.confidence}%</p>
                     </div>
                 """, unsafe_allow_html=True)
-                
             else:
                 with img_col2:
                     st.markdown("<p class='subheader-text'>Hasil Keypoint</p>", unsafe_allow_html=True)
                     st.markdown("<div class='image-container'><p class='upload-text'>Klik tombol Proses</p></div>", unsafe_allow_html=True)
         
-        
         else:
-            # Tampilan default
             if 'processed' in st.session_state:
                 del st.session_state.processed
-
+            
+            # Tampilan default
             img_col1, img_col2 = st.columns(2)
             with img_col1:
                 st.markdown("<p class='subheader-text'>Gambar Asli</p>", unsafe_allow_html=True)
@@ -224,12 +234,3 @@ with st.container():
             with img_col2:
                 st.markdown("<p class='subheader-text'>Hasil Keypoint</p>", unsafe_allow_html=True)
                 st.markdown("<div class='image-container'><p class='upload-text'>Belum Ada Hasil</p></div>", unsafe_allow_html=True)
-            
-            st.markdown("""
-                <div class='prediction-text'>
-                    <p>Karakter: -</p>
-                    <p>Confidence Level: -</p>
-                </div>
-            """, unsafe_allow_html=True)
-        
-        st.markdown("</div>", unsafe_allow_html=True)
